@@ -9,7 +9,8 @@ struct ProjectConfig {
     template_name: String,
     project_name: Option<String>,
     std: String,
-    cmake_min_version: String
+    cmake_min_version: String,
+    build_dir: String
 }
 
 impl Default for ProjectConfig {
@@ -18,7 +19,8 @@ impl Default for ProjectConfig {
             template_name: String::from("default"),
             project_name: Some(String::from("MyProject")),
             std: String::from("17"),
-            cmake_min_version: String::from("3.22")
+            cmake_min_version: String::from("3.22"),
+            build_dir: String::from("./bin")
         }
     }
 }
@@ -46,7 +48,8 @@ fn parse_commands(cmds: &[String]) {
                 template_name: String::from(template_name), 
                 project_name: find_parameter(cmds, &["-n", "--name"]),
                 std: find_parameter(cmds, &["-s", "--std"]).unwrap_or(default_config.std),
-                cmake_min_version: find_parameter(cmds, &["-c", "--cmake-min"]).unwrap_or(default_config.cmake_min_version)
+                cmake_min_version: find_parameter(cmds, &["-c", "--cmake-min"]).unwrap_or(default_config.cmake_min_version),
+                build_dir: String::from("./bin")
             };
             create_new_project(config);
         }
@@ -66,13 +69,14 @@ fn create_new_project(mut config: ProjectConfig) {
     }
 
     
-    let project_name = config.project_name.unwrap();
+    let project_name: String = config.project_name.unwrap();
     let build_sh_src: String;
     let cmake_src: String;
     match config.template_name.as_str() {
         "default" => {
             build_sh_src = DEFAULT_EXE_BUILD_SH
-                .replace("{{project_name}}", &project_name);
+                .replace("{{project_name}}", &project_name)
+                .replace("{{build_dir}}", &config.build_dir);
             cmake_src = DEFAULT_EXE_CMAKE_LISTS
                 .replace("{{project_name}}", &project_name)
                 .replace("{{cmake_min_version}}", &config.cmake_min_version)

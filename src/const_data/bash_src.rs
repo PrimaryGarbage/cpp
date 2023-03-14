@@ -14,7 +14,7 @@ NOCOLOR="\033[m"
 
 ##############
 
-CMAKE_BUILD_DIR='./build'
+CMAKE_BUILD_DIR='{{build_dir}}'
 PROJECT_NAME='{{project_name}}'
 BUILD_TYPE=Debug
 POSTFIX='-d'
@@ -124,7 +124,7 @@ NOCOLOR="\033[m"
 ##############
 
 
-CMAKE_BUILD_DIR='./build'
+CMAKE_BUILD_DIR='{{build_dir}}'
 PROJECT_NAME='{{project_name}}'
 LIB_EXTENSION='dll'
 BUILD_TYPE=Debug
