@@ -72,6 +72,7 @@ fn create_new_project(mut config: ProjectConfig) {
     let project_name: String = config.project_name.unwrap();
     let build_sh_src: String;
     let cmake_src: String;
+    let gitignore_src: String;
     match config.template_name.as_str() {
         "default" => {
             build_sh_src = DEFAULT_EXE_BUILD_SH
@@ -81,6 +82,8 @@ fn create_new_project(mut config: ProjectConfig) {
                 .replace("{{project_name}}", &project_name)
                 .replace("{{cmake_min_version}}", &config.cmake_min_version)
                 .replace("{{cpp_standard}}", &config.std);
+            gitignore_src = GITIGNORE_SRC.replace("{{build_dir_name}}", &config.build_dir.replace("./", ""));
+
         }
         "lib" | "library" => {
             build_sh_src = DEFAULT_LIB_BUILD_SH
@@ -89,6 +92,7 @@ fn create_new_project(mut config: ProjectConfig) {
                 .replace("{{project_name}}", &project_name)
                 .replace("{{cmake_min_version}}", &config.cmake_min_version)
                 .replace("{{cpp_standard}}", &config.std);
+            gitignore_src = GITIGNORE_SRC.replace("{{build_dir_name}}", &config.build_dir.replace("./", ""));
         }
         _ => {
             println!("There is no template with the name '{}'", config.template_name);
@@ -117,7 +121,7 @@ fn create_new_project(mut config: ProjectConfig) {
     };
 
     let mut gitignore_file = fs::File::create(format!("{}/{}", project_dir_path, ".gitignore")).expect("Failed to create gitignore file.");
-    gitignore_file.write_all(GITIGNORE_SRC.as_bytes()).expect("Failed to write into gitingore file.");
+    gitignore_file.write_all(gitignore_src.as_bytes()).expect("Failed to write into gitingore file.");
 
     println!("Project '{}' was successfully created! (template: '{}')", &project_name, &config.template_name);
 }
