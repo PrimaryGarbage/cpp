@@ -1,5 +1,6 @@
 mod const_data;
 use std::{fs, io::Write};
+use git2::Repository;
 
 use crate::const_data::*;
 
@@ -54,12 +55,12 @@ fn parse_commands(cmds: &[String]) {
 }
 
 fn create_new_project(mut config: ProjectConfig) {
-    let mut current_dir_path: String = String::from("./");
+    let mut project_dir_path: String = String::from("./");
 
     match &config.project_name {
         Some(name) => {
             fs::create_dir_all(&name).expect("Failed to create project directory.");
-            current_dir_path.push_str(&name);
+            project_dir_path.push_str(&name);
         }
         None => config.project_name = ProjectConfig::default().project_name
     }
@@ -91,20 +92,28 @@ fn create_new_project(mut config: ProjectConfig) {
         }
     }
 
-    let mut build_file = fs::File::create(format!("{}/{}", &current_dir_path, "build.sh")).expect("Failed to create 'build.sh' file.");
+    let mut build_file = fs::File::create(format!("{}/{}", &project_dir_path, "build.sh")).expect("Failed to create 'build.sh' file.");
     build_file.write_all(build_sh_src.as_bytes()).expect("Failed to write into 'build.sh' file.");
 
 
-    let mut cmake_file = fs::File::create(format!("{}/{}", &current_dir_path, "CMakeLists.txt")).expect("Failed to create 'CMakeLists.txt' file.");
+    let mut cmake_file = fs::File::create(format!("{}/{}", &project_dir_path, "CMakeLists.txt")).expect("Failed to create 'CMakeLists.txt' file.");
     cmake_file.write_all(cmake_src.as_bytes()).expect("Failed to write into 'CMakeLists' file.");
 
-    let src_dir_path = format!("{}/{}", &current_dir_path, "src");
+    let src_dir_path = format!("{}/{}", &project_dir_path, "src");
     fs::create_dir_all(&src_dir_path).expect("Failed to create 'src' directory.");
     let mut main_file = fs::File::create(format!("{}/{}", src_dir_path, "main.cpp")).expect("Failed to create 'main.cpp' file.");
-    main_file.write_all(DEFAULT_MAIN_SRC.as_bytes()).expect("Filed to write into 'main.cpp' file.");
+    main_file.write_all(DEFAULT_MAIN_SRC.as_bytes()).expect("Failed to write into 'main.cpp' file.");
 
-    fs::create_dir_all(format!("{}/{}", &current_dir_path, "external/lib/win")).expect("Failed to create win lib directory.");
-    fs::create_dir_all(format!("{}/{}", &current_dir_path, "external/lib/linux")).expect("Failed to create linux lib directory.");
+    fs::create_dir_all(format!("{}/{}", &project_dir_path, "external/lib/win")).expect("Failed to create win lib directory.");
+    fs::create_dir_all(format!("{}/{}", &project_dir_path, "external/lib/linux")).expect("Failed to create linux lib directory.");
+
+    match Repository::init(&project_dir_path) {
+        Ok(repository) => repository,
+        Err(e) => panic!("Failed to create git repository: {}", e),
+    };
+
+    let mut gitignore_file = fs::File::create(format!("{}/{}", project_dir_path, ".gitignore")).expect("Failed to create gitignore file.");
+    gitignore_file.write_all(GITIGNORE_SRC.as_bytes()).expect("Failed to write into gitingore file.");
 
     println!("Project '{}' was successfully created! (template: '{}')", &project_name, &config.template_name);
 }
